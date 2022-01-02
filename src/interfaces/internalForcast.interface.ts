@@ -12,13 +12,13 @@ export interface TimePeriod {
   weather: string
   temperature: {
     units: string
-    value: number
+    value: number | string
   }
   wind: {
     direction: string
     units: string
-    speed: number
-    gust: number
+    speed: number | string
+    gust: number | string
   }
 
 }

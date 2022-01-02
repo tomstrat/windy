@@ -5,7 +5,8 @@ import * as R from "https://x.nest.land/ramda@0.27.0/source/index.js";
 
 
 export function formatTime(minsFromMidnight: string): string{
-  return (parseInt(minsFromMidnight) / 60).toString()
+  const hour = (parseInt(minsFromMidnight) / 60).toString()
+  return hour.length > 1 ? `${hour}:00` : `0${hour}:00`
 }
 
 export function formatWeather(code: keyof WeatherCodes): string{
@@ -17,25 +18,30 @@ export function formatDay(date: string) {
   return DAYS[new Date(date).getDay()]
 }
 
+export function checkExists<T>(target: T, message: string) {
+  if(!target) return `No ${message} Given`
+  return target
+}
+
 export function formatForcast(days: Period[]): Forcast {
 
   return {
     weekdays: days.reduce((current: Weekday[], next: Period) => {
       current.push({
-        day: formatDay(next.value),
+        day: checkExists(formatDay(next.value), "Day"),
         timePeriods: R.path(["Rep"], next).reduce((current: TimePeriod[], next: Rep) => {
           current.push({
-            time: formatTime(next.$),
-            weather: formatWeather(next.W),
+            time: checkExists(formatTime(next.$), "Time"),
+            weather: checkExists(formatWeather(next.W), "Weather"),
             temperature: {
               units: "Celcius",
-              value: parseInt(next.T)
+              value: checkExists(parseInt(next.T), "Temperature")
             },
             wind: {
-              direction: next.D,
+              direction: checkExists(next.D, "Direction"),
               units: "MPH",
-              speed: parseInt(next.S),
-              gust: parseInt(next.G),
+              speed: checkExists(parseInt(next.S), "Speed"),
+              gust: checkExists(parseInt(next.G), "Gust"),
             }
           })
           return current
