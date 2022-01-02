@@ -1,4 +1,4 @@
-{
+export default {
   "NA": "Not available",
   "0": "Clear night",
   "1": "Sunny day",
