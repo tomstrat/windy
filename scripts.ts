@@ -24,6 +24,13 @@ switch (scriptName) {
     await p.status()    
     break;
 
+  case "debug":
+    p = Deno.run({
+      cmd: ["deno", "run", "--inspect-brk", "-A", "./stormglass/src/index.ts"]
+    });
+    await p.status()
+    break;
+
   // default output if not a script you made  
   default:
     console.log("No Script by that name");
