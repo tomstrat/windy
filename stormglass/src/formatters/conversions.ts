@@ -1,4 +1,3 @@
-
 export function convertToMilesPerHour(speed: number): number {
-  return speed * 2.237
+  return Math.round(speed * 2.237)
 }

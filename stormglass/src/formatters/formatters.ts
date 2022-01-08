@@ -1,19 +1,36 @@
 import * as R from "https://x.nest.land/ramda@0.27.0/source/index.js"
-import {ExternalForcast, ExternalForcastInner} from "../interfaces/externalFormat.interface.ts"
+import {ExternalForcastInner} from "../interfaces/externalFormat.interface.ts"
 import {Forcast} from "../interfaces/internalFormat.interface.ts"
+import {convertToMilesPerHour} from "./conversions.ts"
+import {ForcastDirection, ForcastSpeed} from "../settings.ts"
 
-type ForcastDirection = "windDirection" | "currentDirection" | "swellDirection" | "waveDirection"
+export function removeInnerObject<T>(obj: T){
+  return R.map(<U>(value: U) => {
 
-export function removeInnerObject(obj: ExternalForcast): ExternalForcastInner {
-  return R.map((value: {sg: number} | string) => {
-    if(typeof value === "string") return value
-    return value.sg
+    if(typeof value !== "object") return value // not object 
+    const keys = Object.keys(value)
+    if(keys.length > 1) return value // more than one param
+    const inner: keyof U = keys[0] as keyof U
+    return value[inner] // return the first param
+    
   }, obj)
 }
 
-export function formatDirection(prop: ForcastDirection): (forcast: ExternalForcastInner) => Forcast {
+export function formatForcast(forcast: ExternalForcastInner): Forcast {
 
-  return (forcast: ExternalForcastInner): Forcast => {
+  return {
+    swellPeriod: forcast.swellPeriod,
+    time: forcast.time,
+    waveHeight: forcast.waveHeight,
+    windDirection: formatDirection("windDirection")(forcast),
+    windSpeed: formatSpeed("windSpeed")(forcast),
+  }
+  
+}
+
+export function formatDirection(prop: ForcastDirection): (forcast: ExternalForcastInner) => string {
+
+  return (forcast: ExternalForcastInner): string => {
     type SectorKey = 1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17
     const sectors = {
       1: "N", 2: "NNE", 3: "NE", 4: "ENE",
@@ -24,32 +41,15 @@ export function formatDirection(prop: ForcastDirection): (forcast: ExternalForca
 
     const sector = Math.floor((forcast[prop] % 360) / 22.5) + 1 as SectorKey
 
-    return R.assoc(prop, sectors[sector], forcast)
+    return sectors[sector]
   }  
 }
 
+export function formatSpeed(prop: ForcastSpeed): (forcast: ExternalForcastInner) => number {
 
-// export function formatDirection(forcast: Forcast): Forcast{
-
-//   type Sector = 1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17
-
-//   const directionProps: (keyof Forcast)[] = ["windDirection", "currentDirection", "swellDirection"]
-
-//   const sectors = {
-//     1: "N", 2: "NNE", 3: "NE", 4: "ENE",
-//     5: "E", 6: "ESE", 7: "SE", 8: "SSE",
-//     9: "S", 10: "SSW", 11: "SW", 12: "WSW",
-//     13: "W", 14: "WNW", 15: "NW", 16: "NNW", 17: "N"
-//   }
-
-
-
-//   for(const prop in directionProps) {
-//     const dir = forcast[prop]
-//     const sector = Math.floor((dir % 360) / 22.5) + 1 as Sector
-
-//   }
-
-
-//   return R.mergeAll([{windDirectionCompass: sectors[sector]}, forcast])
-// }
+  return (forcast: ExternalForcastInner): number => {
+    const newSpeed = convertToMilesPerHour(forcast[prop])
+    return newSpeed
+  }
+  
+}
